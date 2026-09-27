@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"time"
+	"uuid"
 
 	"github.com/giandiport80/fiber-book-api/domain"
 	"github.com/giandiport80/fiber-book-api/dto"
@@ -9,6 +12,17 @@ import (
 
 type customerService struct {
 	customerRepository domain.CustomerRepository
+}
+
+// Create implements [domain.CustomerService].
+func (c *customerService) Create(ctx context.Context, req dto.CreateCustomerRequest) error {
+	customer := domain.Customer{
+		ID:        uuid.New().String(),
+		Name:      req.Name,
+		Code:      req.Code,
+		CreatedAt: sql.NullTime{Valid: true, Time: time.Now()},
+	}
+	return c.customerRepository.Save(ctx, &customer)
 }
 
 // Index implements [domain.CustomerService].

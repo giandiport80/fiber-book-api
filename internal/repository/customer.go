@@ -27,7 +27,7 @@ func (c *customerRepository) FindAll(ctx context.Context) (result []domain.Custo
 }
 
 // FindById implements [domain.CustomerRepository].
-func (c *customerRepository) FindById(ctx context.Context, id string) (result domain.Customer, err error) {
+func (c *customerRepository) FindById(ctx context.Context, id string) (result *domain.Customer, err error) {
 	dataset := c.db.From("customers").Where(goqu.C("deleted_at").IsNull(), goqu.C("id").Eq(id))
 	err = dataset.ScanStructsContext(ctx, &result)
 	return

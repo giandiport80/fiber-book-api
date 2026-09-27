@@ -7,6 +7,7 @@ import (
 
 	"github.com/giandiport80/fiber-book-api/domain"
 	"github.com/giandiport80/fiber-book-api/dto"
+	"github.com/giandiport80/fiber-book-api/internal/util"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -19,7 +20,8 @@ func NewCustomer(app *fiber.App, customerService domain.CustomerService) {
 		customerService: customerService,
 	}
 
-	app.Get("/customers/", ca.Index)
+	app.Get("/customers", ca.Index)
+	app.Post("/customers", ca.Create)
 }
 
 func (ca customerApi) Index(ctx fiber.Ctx) error {
@@ -29,9 +31,36 @@ func (ca customerApi) Index(ctx fiber.Ctx) error {
 	res, err := ca.customerService.Index(c)
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).
-			JSON(dto.CreateResponseError(err.Error()))
+			JSON(dto.CreateResponseError(err.Error(), nil))
 	}
 
 	return ctx.JSON(dto.CreateResponseSuccess(res))
 
+}
+
+func (ca customerApi) Create(ctx fiber.Ctx) error {
+	c, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
+	defer cancel()
+
+	var req dto.CreateCustomerRequest
+	if err := ctx.Bind().JSON(&req); err != nil {
+		return ctx.SendStatus(http.StatusUnprocessableEntity)
+	}
+
+	fails := util.Validate(req)
+	if len(fails) > 0 {
+		return ctx.Status(http.StatusBadRequest).
+			JSON(dto.CreateResponseError("Error get data", fails))
+	}
+
+	util.TrimStrings(&req)
+
+	err := ca.customerService.Create(c, req)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).
+			JSON(dto.CreateResponseError(err.Error(), nil))
+	}
+
+	return ctx.Status(http.StatusCreated).
+		JSON(dto.CreateResponseSuccess(""))
 }

@@ -18,7 +18,7 @@ type Customer struct {
 
 type CustomerRepository interface {
 	FindAll(ctx context.Context) ([]Customer, error)
-	FindById(ctx context.Context, id string) (Customer, error)
+	FindById(ctx context.Context, id string) (*Customer, error)
 	Save(ctx context.Context, c *Customer) error
 	Update(ctx context.Context, c *Customer) error
 	Delete(ctx context.Context, id string) error
@@ -26,4 +26,5 @@ type CustomerRepository interface {
 
 type CustomerService interface {
 	Index(ctx context.Context) ([]dto.CustomerData, error)
+	Create(ctx context.Context, req dto.CreateCustomerRequest) error
 }
