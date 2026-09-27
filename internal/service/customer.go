@@ -15,6 +15,38 @@ type customerService struct {
 	customerRepository domain.CustomerRepository
 }
 
+// Show implements [domain.CustomerService].
+func (c *customerService) Show(ctx context.Context, id string) (*dto.CustomerData, error) {
+	persisted, err := c.customerRepository.FindById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if persisted == nil {
+		return nil, errors.New("Data customer tidak ditemukan")
+	}
+
+	return &dto.CustomerData{
+		ID:   persisted.ID,
+		Code: persisted.Code,
+		Name: persisted.Name,
+	}, nil
+}
+
+// Delete implements [domain.CustomerService].
+func (c *customerService) Delete(ctx context.Context, id string) error {
+	persisted, err := c.customerRepository.FindById(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if persisted == nil {
+		return errors.New("Data customer tidak ditemukan")
+	}
+
+	return c.customerRepository.Delete(ctx, id)
+}
+
 // Update implements [domain.CustomerService].
 func (c *customerService) Update(ctx context.Context, req dto.UpdateCustomerRequest) error {
 	persisted, err := c.customerRepository.FindById(ctx, req.ID)
