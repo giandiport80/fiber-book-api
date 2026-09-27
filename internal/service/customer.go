@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 	"uuid"
 
@@ -12,6 +13,24 @@ import (
 
 type customerService struct {
 	customerRepository domain.CustomerRepository
+}
+
+// Update implements [domain.CustomerService].
+func (c *customerService) Update(ctx context.Context, req dto.UpdateCustomerRequest) error {
+	persisted, err := c.customerRepository.FindById(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+
+	if persisted == nil {
+		return errors.New("Data customer tidak ditemukan")
+	}
+
+	persisted.Code = req.Code
+	persisted.Name = req.Name
+	persisted.UpdatedAt = sql.NullTime{Valid: true, Time: time.Now()}
+
+	return c.customerRepository.Update(ctx, persisted)
 }
 
 // Create implements [domain.CustomerService].
